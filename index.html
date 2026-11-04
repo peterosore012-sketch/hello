@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#180d2d">
+<title>A Birthday Call for You</title>
+<style>
+*{box-sizing:border-box} body{margin:0;min-height:100vh;font-family:Georgia,serif;color:#fff;background:radial-gradient(circle at top,#56316f 0,#211333 48%,#100a1c 100%);display:grid;place-items:center;padding:22px;overflow-x:hidden}
+.card{width:min(100%,470px);min-height:650px;border:1px solid #ffffff2c;border-radius:30px;background:#ffffff0d;backdrop-filter:blur(12px);box-shadow:0 24px 80px #0007;padding:30px 24px;text-align:center;position:relative;overflow:hidden}
+.glow{position:absolute;width:240px;height:240px;border-radius:50%;background:#ff83bd26;filter:blur(30px);top:-90px;left:calc(50% - 120px);pointer-events:none}
+.eyebrow{font:12px Arial,sans-serif;letter-spacing:3px;text-transform:uppercase;color:#e9c5ff}
+h1{font-size:clamp(30px,8vw,43px);line-height:1.12;margin:18px 0 10px}.sub{font:15px/1.6 Arial,sans-serif;color:#e7dced}
+.avatar{width:112px;height:112px;border-radius:50%;margin:32px auto 18px;display:grid;place-items:center;background:linear-gradient(135deg,#ff9acb,#9d6aff);font-size:48px;box-shadow:0 0 0 10px #ffffff0b,0 0 40px #ff8cc966}
+.calling{font:14px Arial,sans-serif;color:#eacff7;letter-spacing:1px}.pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:#70f0a0;margin-right:8px;box-shadow:0 0 12px #70f0a0;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.25;transform:scale(.7)}}
+.actions{display:flex;justify-content:center;gap:22px;margin:34px 0 18px}.action{border:0;border-radius:50%;width:74px;height:74px;color:#fff;font-size:28px;cursor:pointer;box-shadow:0 10px 24px #0004}.answer{background:#27b96b}.decline{background:#e94c69}.hint{font:12px Arial,sans-serif;color:#cbbbd4}
+.hidden{display:none!important}
+.message{animation:appear .8s ease both}@keyframes appear{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:none}}
+.message h1{color:#ffd5e9}.letter{font:16px/1.8 Arial,sans-serif;color:#f6eaf8;margin:20px auto;max-width:350px}
+.cake{font-size:74px;margin:14px 0 4px;filter:drop-shadow(0 8px 14px #0005)}
+.candles{display:flex;justify-content:center;gap:15px;margin:4px 0 10px}.candle{font-size:30px;cursor:pointer;user-select:none;transition:transform .2s}.candle:active{transform:scale(.8)}
+button.secondary{border:1px solid #ffffff55;background:#ffffff12;color:#fff;border-radius:999px;padding:13px 22px;font:14px Arial,sans-serif;cursor:pointer;margin-top:12px}
+#status{font:13px Arial,sans-serif;color:#f6c9e1;min-height:20px}
+.sparkle{position:absolute;pointer-events:none;opacity:.55;color:#ffd9a6}
+footer{font:11px Arial,sans-serif;color:#a997b5;margin-top:22px}
+</style>
+</head>
+<body>
+<main class="card">
+<div class="glow"></div><span class="sparkle" style="top:35px;left:25px">✦</span><span class="sparkle" style="top:110px;right:28px">✧</span>
+<section id="incoming">
+<div class="eyebrow">A little surprise is calling</div>
+<div class="avatar">🎂</div>
+<div class="calling" id="calling"><span class="pulse"></span>Incoming birthday call…</div>
+<h1>Someone has a<br>special message for you</h1>
+<p class="sub">Pick up, birthday girl. This call is just for you 💗</p>
+<div class="actions">
+<button class="action decline" id="decline" aria-label="Decline call">✕</button>
+<button class="action answer" id="answer" aria-label="Answer call">☎</button>
+</div>
+<div class="hint">Tap “Turn on ringtone” to hear the phone ringing, then answer the call.</div>
+<button class="secondary" id="enableRing">🔔 Turn on ringtone</button>
+</section>
+
+<section id="surprise" class="message hidden">
+<div class="eyebrow">Call connected ♡</div>
+<h1>Happy Birthday,<br>Pauline! 🎉</h1>
+<p class="sub">A birthday surprise from Peter, your boyfriend 💗</p>
+<p class="letter">Pauline, happy birthday, my love! You make my world brighter just by being in it. I’m grateful for you, for your beautiful heart, and for every moment we share. May this new year of your life bring you endless joy, peace, laughter, and dreams coming true. Keep shining, sweetheart. I love you, and I hope today reminds you how special you are to me. With all my love, Peter. 💖</p>
+<div class="cake">🎂</div>
+<div class="candles" id="candles" aria-label="Tap the candles to blow them out">
+<span class="candle" role="button" tabindex="0" aria-label="Blow candle">🕯️</span>
+<span class="candle" role="button" tabindex="0" aria-label="Blow candle">🕯️</span>
+<span class="candle" role="button" tabindex="0" aria-label="Blow candle">🕯️</span>
+</div>
+<p class="sub">Close your eyes, make a wish… then tap each candle to blow it out. ✨</p>
+<div id="status">Your birthday song is playing for you ♫</div>
+<button class="secondary" id="again">Play the birthday song again</button>
+</section>
+<footer>Made with love, just for you</footer>
+</main>
+<script>
+let audioCtx=null, timer=null, noteIndex=0, active=false, ringTimer=null, ringing=false;
+const melody=[392,392,440,392,523,494,392,392,440,392,587,523,392,392,784,659,523,494,440,698,698,659,523,587,523];
+const lengths=[.35,.35,.7,.7,.7,1.1,.35,.35,.7,.7,.7,1.1,.35,.35,.7,.7,.7,.7,1.1,.35,.35,.7,.7,.7,1.2];
+async function startRingtone(){
+ try{
+  audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();
+  await audioCtx.resume();
+  stopSong();
+  ringing=true;
+  clearTimeout(ringTimer);
+  const ringBurst=()=>{
+   if(!ringing||!audioCtx)return;
+   const now=audioCtx.currentTime;
+   [0,0.42].forEach(offset=>{
+    [440,480].forEach(freq=>{
+     const osc=audioCtx.createOscillator(), gain=audioCtx.createGain();
+     osc.type='sine';osc.frequency.value=freq;
+     gain.gain.setValueAtTime(.0001,now+offset);
+     gain.gain.exponentialRampToValueAtTime(.075,now+offset+.025);
+     gain.gain.setValueAtTime(.075,now+offset+.27);
+     gain.gain.exponentialRampToValueAtTime(.0001,now+offset+.32);
+     osc.connect(gain);gain.connect(audioCtx.destination);
+     osc.start(now+offset);osc.stop(now+offset+.34);
+    });
+   });
+   ringTimer=setTimeout(ringBurst,2300);
+  };
+  ringBurst();
+  document.getElementById('calling').innerHTML='<span class="pulse"></span>Ringing… tap the green button to answer';
+ }catch(e){
+  document.getElementById('calling').textContent='Tap “Turn on ringtone” again to enable sound.';
+ }
+}
+function stopRingtone(){
+ ringing=false;
+ clearTimeout(ringTimer);
+}
+function playNote(){
+ if(!active||!audioCtx)return;
+ const now=audioCtx.currentTime, freq=melody[noteIndex%melody.length], dur=lengths[noteIndex%lengths.length];
+ const osc=audioCtx.createOscillator(), gain=audioCtx.createGain();
+ osc.type='sine';osc.frequency.value=freq;gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.12,now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+dur*.88);
+ osc.connect(gain);gain.connect(audioCtx.destination);osc.start(now);osc.stop(now+dur);
+ noteIndex++;timer=setTimeout(playNote,dur*650);
+}
+async function startSong(){
+ try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();await audioCtx.resume();active=true;clearTimeout(timer);playNote();}catch(e){document.getElementById('status').textContent='Tap “Play the birthday song again” to enable sound.'}
+}
+function stopSong(){active=false;clearTimeout(timer)}
+document.getElementById('enableRing').addEventListener('click',startRingtone);
+document.getElementById('answer').addEventListener('click',()=>{stopRingtone();document.getElementById('incoming').classList.add('hidden');document.getElementById('surprise').classList.remove('hidden');stopSong();startSong();});
+document.getElementById('decline').addEventListener('click',()=>{document.querySelector('.calling').textContent='The surprise is waiting whenever you are ready 💗';});
+document.getElementById('again').addEventListener('click',startSong);
+function blow(c){if(c.textContent==='🕯️'){c.textContent='💨';c.style.opacity='.65';const remaining=[...document.querySelectorAll('.candle')].filter(x=>x.textContent==='🕯️').length;if(remaining===0)document.getElementById('status').textContent='Wish sent! May it come true. Happy Birthday! ✨';}}
+document.querySelectorAll('.candle').forEach(c=>{c.addEventListener('click',()=>blow(c));c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();blow(c)}})});
+</script>
+</body>
+</html>
